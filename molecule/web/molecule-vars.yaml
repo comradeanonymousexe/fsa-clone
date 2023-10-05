@@ -1,0 +1,47 @@
+---
+machines:
+  - name: httphost
+    box: obsd72 
+    vars:
+      net:
+        ifaces:
+          - name: vio0
+          - name: vio1
+            addr: 172.16.123.33
+            netmask: 255.255.255.0
+      web:
+        httpd: true
+        sites:
+          - name: fsaisgud.com
+            root: /fsaisgud
+            listen: all
+            port: 8080
+            alts:
+              - www.fsaisgud.com
+  - name: relayhost
+    box: obsd72
+    vars:
+      net:
+        ifaces:
+          - name: vio0
+          - name: vio1
+            addr: 172.16.123.34
+            netmask: 255.255.255.0
+      web:
+        relay:
+          frontends:
+            - name: relayfrontend
+              addr: 0.0.0.0
+              type: http
+              port: 80
+          backends:
+            - name: httpbackend
+              origin: relayfrontend
+              targets:
+                - 172.16.123.33
+              port: 8080
+verifier: testinfra
+scenario:
+  - converge
+  - idempotence
+  - verify

@@ -1,0 +1,15 @@
+# extra steps for libvirt host to get dedicated vagrant user for remote libvirt control
+# see also vagrant.yml and utils/drone.star aswell as molecule/README.md
+# this will eventually become obsolete when the users role is refactored
+- hosts: seth
+  gather_facts: false
+  tasks:
+    - name: "setup vagrant pubkey"
+      ansible.posix.authorized_key:
+        # vagrant-libvirt *needs* root apparently :(
+        user: root
+        state: present
+        key: "{{ item }}"
+      loop:
+        - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCuqqQM1UMa8OvDI9OIg2PsfGu1Nzz/9qN65nmIJlC/GCi03p2MMJ6w1ro8Y5Hdt/c9r74sHFkswhT2hnWwe+zNclIze77c99E4JRcDHdvS+jnWNfoQ3b12ZzDLLsBqqpEocv//cZS5S7evhR4FNYLCkM8aIf99y5ULcjbonxrKXZRdkPfMUWqh9SK8t26yHQnlTNAtoixm1diaA/RzbHoWzg7BXMMsQ7YFaSjjqObl0Wrj3JafkQVYShKbr+voMK6ahYmyX6DdX4z2XsMmbpvHqGZ5k9huKGoUuP5S+YaToh1ee8z0rEiYAPLhgOwCi1+fe8upza7lcNEY0bZFXVQ86Z1/KDP0CT6Ws9fyqll0qtGjCuw9u3yLH0LVdsxuZ59WXijAr2Ab8z1cRC9knoPqIbuB2Naod4sIETJPYAASKLscGfMWfkZIit8vOhHiZd5Zv2KH1mJ9kbY5PDGbx8yj31jMEGV4s0t1H8oxmM/7cOURIs5zLk0vndr6Ml+sJ08="
+        - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAEAQDgYJN5+aqU+tjU5Z9nPlU9n6rY7lx5Zqjm3C3CvocF9OO0aSCtCm6LEr/WxZv9Ez9SBuG+htrbUUwXUeyRNZSrSMQKTZ9c17wV3TfsIA6Fwq4xGQuycqOiJjc7eBDENHcHldetkqOWOueLThy2WBcvSx6eFToalzWtSOUJYlYLfbmH0kYianzA1f3S5+QxYciBYEvFBlfMAUUpCXzdFBGRW7cWEwTHlCnXABJuJnH+Wc5ZwoemAE4l3m97hwuSc2qqy+VG4nNVIeiFf32kNTRXcxc6sgnGV/C7Y8X2887o+A0WryaMNDxgzR0JLyiXm/a8AF1cybl1S3xDoDJfmyiaCRIEMRT9v6mJDf3aNFxW/K9IPW6u3UVlyHKZ9/19BeTDyCvpu9IriuWm6sw4E87VsCHi2aMLGTRrkfTQqXqxDKcfw58BOrnuIxqbk5qRetFozn74hK7B1Nx/Oqia++jxGKBDaluF1i1qzk48pwMbStW1qQS6wJqT7CwAA2Z450EnaQi3OfWhYFMvdbcwAhx30P52JRNeqx0z/iThqdhxG5Xk8JceWLqP1oCSAkDz3HttWPKZkV2zQBZ/zj9r0lZXssRC6gd3Oz+s5aVPVul+Sd5BfKJJ4VGow+WlDeM7n91RBTWnfc+fIluG2jKVMSIbDI5Q6COlyXxSQBV4dS0wBpQBPtLsSWE4uL1yT9Huvhbe6FuGbgXmWG1M16Exp0yQwKr4+P1sFjyDP3Ify4vTB8Vb0mlEB2R+jkpmX5rhYOGcuYzfmmshWH+D2dD2f+A5CVqKtZAq7wnyWGLja07lC1TWzD2+2zyfX2Y4MDkuR90aXZs1LI7B9XBTHvN3vE+8KCPTGUeEFKHhua3qhakDLs1OAEEUP6ulTKinsKhL+D2wDVu6cQDf0d6WXrIFH0z/8c1/Kjsn+JNjp//6gFZhp/V1fHhgQ9/woThKi2FO2mu2KIqHk3E38aUhjtLgLFbtk6N38mFaCGUO7McsK+pkmX0zBqyjjGfVUDX1aRWNAo0J+fBO7X0BjzVllzXJX4bSGLWVHf4gvJrShZNFoBWuI/UfhyaNtq9y1p6iRH5rOwJ16h+R1hkpRWWNphr1UPnPXjFDz+2MgRJPEIaGPeJbghtj14d6g3o3ayW+1eLMn+OI0kPhV6NDQsxKuKuTs8nXaO+LM/d9x4xeF41O/azqO+3my2AW4vxabofkbkGk2PMSqQEnPfm2Y5OG0IhqOvvCRrkcnnWvr5xYQxtQAaGtMYKOxxouEuJr7XGUOxkjKBn4edzSDgbHc7anlX5fTxyJcsvfURLTH811vVls3T+WmnPAwVNcQhZ2eXL+k2ce0BH/V4Jie91aru31gR0l72b5 opv@dsk1"

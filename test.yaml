@@ -1,0 +1,32 @@
+# my beautiful standard testing playbook :)
+- hosts: localhost
+  connection: local
+  gather_facts: true
+  vars:
+    item: drone-runner-kube
+    apps:
+      drone:
+        url: cicd.opviel.de
+        admin: opv 
+        runners:
+          count: 2
+          resources:
+            requests:
+              cpu: 1
+              memory: 3Gi 
+            limits:
+              cpu: 3
+              memory: 3Gi 
+        gitea:
+          url: vcs.opviel.de
+          client: "8ccef6ab-347e-4dfa-951f-8bd7027dd037"
+          secret: "gto_h57wbb5owrcnx5lmaued75skx6ph3e56j5s7hok2argrdgvg3lla"
+
+  tasks:
+    - name: "drone : template values files"
+      ansible.builtin.template:
+        src: roles/drone/templates/values.yaml.j2
+        dest: TESTfuckinVALUES.yaml
+      delegate_to: localhost
+      changed_when: false
+

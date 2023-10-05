@@ -1,0 +1,4 @@
+---
+machines:
+    - name: idempotence
+      box: obsd72

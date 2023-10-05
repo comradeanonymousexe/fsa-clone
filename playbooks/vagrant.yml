@@ -1,0 +1,67 @@
+# set up vagrant, vagrant-libvirt and pipenv for fsa testing
+# see also: molecule/README.md aswell as utils/drone.star
+- hosts: vagrant
+  gather_facts: false
+  tasks:
+    - name: "install vagrant & deps"
+      ansible.builtin.apt:
+        pkg:
+          - vagrant
+          - ruby-libvirt
+          - ruby-dev
+          - libvirt-dev
+          - qemu-system
+          - libvirt-daemon-system
+          - ebtables
+          - libguestfs-tools
+          - ruby-fog-libvirt
+          - bc
+          - git
+          - python3-pip
+        state: latest
+        update_cache: yes
+        install_recommends: false
+
+    - name: "install vagrant-libvirt"
+      ansible.builtin.shell: vagrant plugin install vagrant-libvirt
+      become_user: vagrant
+
+    - name: "create vagrant user"
+      ansible.builtin.user:
+        name: vagrant
+        shell: /bin/bash
+        generate_ssh_key: yes
+
+    - name: "add pip path to user"
+      ansible.builtin.lineinfile:
+        path: /home/vagrant/.bashrc
+        line: "export PATH=$(python3 -m site --user-base)/bin:$PATH"
+
+    - name: "install pipenv"
+      ansible.builtin.shell: pip3 install --upgrade --break-system-packages --force-reinstall pipenv
+
+    - name: "setup .ssh/config"
+      ansible.builtin.blockinfile:
+        path: /home/vagrant/.ssh/config
+        owner: vagrant
+        group: vagrant
+        create: true
+        block: |
+          Host seth
+            User root
+
+    - name: "setup pubkey"
+      ansible.posix.authorized_key:
+        user: vagrant
+        state: present
+        exclusive: true
+        key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAEAQC0mnL3coZoBmCntBlZ4pZkByQ+9yi4UFLHLsLikw/DDu/LC4nK/LrsI60lZkZYWS++bKkpSWSGYhP2Vs4EscVyEFULrvAWdpFA95RmyXYOMQ4tPxk8llvl/nFtIYX48btqnzfO6Uy46jf9G/SxFlDUHBTDtQcuB/Y6d+Yxf7DhJlEM4r6TavRZrehixvqWZUz2plO+7xHYTTZzhoIQK6+3VsVMJlN2N9/zjrqqW/HYnjzJElprTWm9Q2bSd1lEOz8v0KyKsaOvyNrjY6DLRV6bvJLlooLjKPAUpf7SQ7nXqDLjit2EixOkcYxIRM0K0A/futNs0i1BsggOIGx4NbCNJs2DQaXaxLYX5JaLJQ08WI+QIboAA0TS8XEag+JdUnN1NbrnXgnmfVWXD/x3krn4rzFpjjGxBhtQsPRuXb+ESwnaIJFqea0FNGma1sr2/H83muyjoNTDiRdEGji3dsuMyJ/bP59ibn9Rf4zERkEnT6Gk9gnG5dFvfDC7QcOxThqK2VGE4aPu5BGc8CD7YA2wYP5m4e+yLBPzmQVyrYtbqoDnyGAUgJAcooQH+nh5KysANWNkh6JYRdYjRl7tOdnozmC+6HvSCsQhTYDQy0WwHqwc/3wCdMfP5VLpIkld/CTNgyA6ATT2RO1MwDc/zGv3ycCs/sKcJN+JYHXUttlZEiSlXYYxal8pDeUd+zeQCmAmVOCRbuh+DXfJcDpZGphdMM9YerVfVTdaybnuKI/dJ0BknjLFKpJRRvcygCqF2xrLiy1gUc3BBXMzjlQ6N91sCagpqJtWHgvawMly0sAkamTXx60JjX636Id3jfRISz5yuyC6tgds5gqdnMKLZ9f/jSp1vxAGAjgVEftHKh+++StoKyr2YubMbKaOiItprJXwknZ3GgAIIJqwQm4rKkRlA19UH6fojCsCgdAaOS9BQ5gtNF7UZqM9pZXB5NwEZG0awUWz/a2Snp92txCUvnRDd9CkQWGYN18lxetqq/mY3m8CI/cQ1xruyazFDs7lLpMtZS/yT8bsc8XRHzGs/IfZzPoMcejSKrf8ThGiOdXaE8XBMXOQrL9M60oUrNXzc9XCQLtQW0ocwkt7axvogSS0Q8cv239+SXWjzpkJF/cBsdNwq+nf6/SKlKR7fr61m8hg80yt5+iMpxJxmqvNzVHEGb6H01XlnwJxBjdmvsC8m8cT4kAPirnZcoVDiRAwT1s51H+52jaZMhD2yA9OgBuhMXT8WjG/r1hwJp0kiHd/bua26qtiq+gH+hQgAFelixGidOcfvRRnk3u4RSMNADM6MB/7MJCmOKbOZEsp9238W0De/B915e4TJ6HeujS/qzdgWpFV4PQADymPK95a8emT root@kane.opviel.de"
+
+    # clean up pipenv cache folders
+    - name: "setup autoremove for stuff that errored and such"
+      ansible.builtin.cron:
+        name: "drone-cleanup"
+        minute: "0"
+        hour: "*"
+        user: root
+        job: find /tmp -maxdepth 1 ! -wholename "/tmp" -amin +360 -exec rm -rf '{}' \;

@@ -1,0 +1,71 @@
+---
+machines:
+  - name: gitea-mysql
+    box: obsd72
+#    box_url: http://seth:8000/obsd.box
+    vars:
+      net:
+        ifaces:
+          # leave 1 dhcp interface for vagrant
+          - name: vio0
+          - name: vio1
+            addr: 172.16.123.16
+            netmask: 255.255.255.0
+      apps:
+        # gitea: TESTS RAN
+        # - service is reachable
+        # - config was set
+        gitea:
+          name: my-beautiful-gitea
+          url: "http://my-gitea.com/"
+          config:
+          # listen on public addr
+            - section: server
+              option: HTTP_ADDR
+              value: 0.0.0.0
+        # mysql: TESTS RAN
+        # - service is running
+        # - config was set
+        # - db was imported
+        # - user was created correctly
+        mysql:
+          config:
+            - section: server
+              option: bind-address
+              value: 0.0.0.0
+          dbs:
+            - mydatabase
+          users:
+            - name: mysqluser
+              pass: mysqlpass
+              from: 172.16.123.17
+              ondb: mydatabase
+          imports:
+            - src: ./mydbdump.sql
+              dest: mydatabase
+  - name: webdav-mpd
+    box: obsd72
+#    box_url: http://seth:8000/obsd.box
+    vars:
+      net:
+        ifaces:
+          - name: vio0
+          - name: vio1
+            addr: 172.16.123.17
+            netmask: 255.255.255.0
+      base:
+        sound: true
+      apps:
+        # mpd: TESTS RAN
+        # - service is running
+        # - service plays music
+        # - radios are available
+        mpd:
+          listen: 127.0.0.1
+          port: 6601
+          webradio: true
+verifier: testinfra
+scenario:
+  - converge
+  - idempotence
+  - verify
